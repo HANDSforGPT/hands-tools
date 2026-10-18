@@ -1,0 +1,32 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "remotion-studio",
+    "name": "Remotion Studio",
+    "summary": "Professional Remotion production workflows.",
+    "version": "0.1.0",
+    "minCore": "1.0.0",
+    "category": "Video",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_remotion_brief",
+      "hands_read_file",
+      "hands_write_file"
+    ]
+  },
+  "instructions": "Create timed production briefs using HANDS. Inspect and modify project files only through protected HANDS commands, and verify actual render output.",
+  "recipes": [
+    {
+      "title": "Getting started with Remotion Studio",
+      "steps": [
+        {
+          "instruction": "Identify the user's objective and permitted HANDS capabilities."
+        },
+        {
+          "instruction": "Apply the tool only through authorized HANDS commands.",
+          "command": "hands_remotion_brief"
+        }
+      ]
+    }
+  ]
+}

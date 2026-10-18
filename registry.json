@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "source": "HANDSforGPT/hands-tools",
+  "tools": [
+    {
+      "id": "audio-mixer",
+      "name": "Ears",
+      "version": "0.1.0",
+      "description": "Permission-controlled audio mixing.",
+      "category": "Audio",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/audio-mixer/package.json",
+      "sha256": "20a7cb11e7c614e92fe63d06733ecf1675dabd689fa07796c8d9b64d551db58e"
+    },
+    {
+      "id": "github-connect",
+      "name": "GitHub Workspace",
+      "version": "0.1.0",
+      "description": "Authorized Git development workflows.",
+      "category": "Developer",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/github-connect/package.json",
+      "sha256": "42048b704ad9fa3cc7158b55cc6b10524a86e43a7e1ba63cdbebb65c85bb63b7"
+    },
+    {
+      "id": "hands-brain",
+      "name": "Brain",
+      "version": "0.1.0",
+      "description": "Improve your model efficiency and store your data locally.",
+      "category": "Memory",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/hands-brain/package.json",
+      "sha256": "1d68a4662765c2c1cf37b9723dad732111ba152c3e1a1f9748800e25113e1d0c"
+    },
+    {
+      "id": "remotion-studio",
+      "name": "Remotion Studio",
+      "version": "0.1.0",
+      "description": "Professional Remotion production workflows.",
+      "category": "Video",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/remotion-studio/package.json",
+      "sha256": "42316f8c85c7d839abd5ec63fb166a6f5f448b389bcb1c453b84421acf995ec4"
+    },
+    {
+      "id": "screenshot-share",
+      "name": "Eyes",
+      "version": "0.1.0",
+      "description": "Capture and understand screens.",
+      "category": "Visual",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/screenshot-share/package.json",
+      "sha256": "5d93797c524b626bbc3c703467f41b8118f5bec42e8e7f776425d54564701e93"
+    },
+    {
+      "id": "workflow-builder",
+      "name": "Tool Builder",
+      "version": "0.1.0",
+      "description": "Create and share HANDS tools for free.",
+      "category": "Developer",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/workflow-builder/package.json",
+      "sha256": "cf661d19bafbca20a93cfcbd5dc8e509e71633753c4c69768538379b5c53c8b6"
+    }
+  ]
+}

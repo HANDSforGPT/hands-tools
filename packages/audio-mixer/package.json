@@ -1,0 +1,31 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "audio-mixer",
+    "name": "Ears",
+    "summary": "Permission-controlled audio mixing.",
+    "version": "0.1.0",
+    "minCore": "1.0.0",
+    "category": "Audio",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_audio_files",
+      "hands_mix_audio"
+    ]
+  },
+  "instructions": "Find approved audio files; mix only files the user selects. Document levels, fades and final output. Never claim to control a DAW without its own adapter.",
+  "recipes": [
+    {
+      "title": "Getting started with Ears",
+      "steps": [
+        {
+          "instruction": "Identify the user's objective and permitted HANDS capabilities."
+        },
+        {
+          "instruction": "Apply the tool only through authorized HANDS commands.",
+          "command": "hands_audio_files"
+        }
+      ]
+    }
+  ]
+}

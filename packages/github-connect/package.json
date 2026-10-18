@@ -1,0 +1,32 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "github-connect",
+    "name": "GitHub Workspace",
+    "summary": "Authorized Git development workflows.",
+    "version": "0.1.0",
+    "minCore": "1.0.0",
+    "category": "Developer",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_read_file",
+      "hands_write_file",
+      "hands_start_process"
+    ]
+  },
+  "instructions": "Inspect code and run approved tests. Never push, publish, or deploy without explicit user authorization. Underlying HANDS commands retain permissions.",
+  "recipes": [
+    {
+      "title": "Getting started with GitHub Workspace",
+      "steps": [
+        {
+          "instruction": "Identify the user's objective and permitted HANDS capabilities."
+        },
+        {
+          "instruction": "Apply the tool only through authorized HANDS commands.",
+          "command": "hands_read_file"
+        }
+      ]
+    }
+  ]
+}

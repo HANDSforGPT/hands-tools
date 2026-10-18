@@ -1,0 +1,30 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "screenshot-share",
+    "name": "Eyes",
+    "summary": "Capture and understand screens.",
+    "version": "0.1.0",
+    "minCore": "1.0.0",
+    "category": "Visual",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_capture_screen"
+    ]
+  },
+  "instructions": "Capture screens only at the user's request and only with macOS approval. Keep images local unless the user approves sharing.",
+  "recipes": [
+    {
+      "title": "Getting started with Eyes",
+      "steps": [
+        {
+          "instruction": "Identify the user's objective and permitted HANDS capabilities."
+        },
+        {
+          "instruction": "Apply the tool only through authorized HANDS commands.",
+          "command": "hands_capture_screen"
+        }
+      ]
+    }
+  ]
+}
