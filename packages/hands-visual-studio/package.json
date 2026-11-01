@@ -1,0 +1,53 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "hands-visual-studio",
+    "name": "HANDS Visual Studio",
+    "summary": "Full in-app video timeline editor with reusable Remotion and ReelMade projects, layers, local save files, and export.",
+    "version": "0.1.0",
+    "minCore": "1.2.57",
+    "category": "Video",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_read_file",
+      "hands_write_file",
+      "hands_start_process"
+    ]
+  },
+  "instructions": "HANDS Visual Studio is a downloadable on-device workspace. After installation, pin it from Tools and click its left sidebar entry. Every coded video must preserve its source project, a render preview (MP4), editable timeline data, and separate reusable image/audio/video assets. Place a visual-studio.json sidecar beside the render listing each independently editable asset in display coordinates and seconds; do not flatten elements that may need future movement, timing changes, or text edits. If source only provides an MP4, import it as a single baked layer and be explicit that internal objects cannot be separately manipulated. The visual editor stores revisioned project.hvs.json on the user's SSD when available, allows manual timeline and canvas changes, and exports an MP4 using locally installed FFmpeg. Do not overwrite original source videos or source code on save. Reopen projects from HANDS Visual Studio. For code/voice edit instructions, read the current .hvs.json state first and preserve manual changes on re-render. Local service at 127.0.0.1:5127 is part of signed HANDS desktop app v1.2.57+, never execute downloaded package scripts.",
+  "recipes": [
+    {
+      "title": "Open and edit a HANDS video",
+      "steps": [
+        {
+          "instruction": "Open HANDS Tools > HANDS Visual Studio, pin it, then select it from the left sidebar."
+        },
+        {
+          "instruction": "Select a project or import a generated project folder and inspect its layers."
+        },
+        {
+          "instruction": "Move and resize layers, adjust starts/durations, trim audio, update text and save the .hvs.json revision."
+        },
+        {
+          "instruction": "Export an MP4 and review it while keeping all source and project files."
+        }
+      ]
+    },
+    {
+      "title": "Generate a future editable video",
+      "steps": [
+        {
+          "instruction": "Generate original video with Remotion Director or ReelMade, preserving source code, media assets and timeline metadata.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "Write visual-studio.json with individual source layers, independent audio files, start/duration/track plus viewport coordinates.",
+          "command": "hands_write_file"
+        },
+        {
+          "instruction": "Import the project in HANDS Visual Studio; preserve manual edits when changing the generation code."
+        }
+      ]
+    }
+  ]
+}

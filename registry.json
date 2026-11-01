@@ -43,6 +43,16 @@
       "sha256": "e274c9ed429309b6730005e0c1d70ba6a0ce354296de18c01f51a295110eddca"
     },
     {
+      "id": "hands-visual-studio",
+      "name": "HANDS Visual Studio",
+      "version": "0.1.0",
+      "description": "Full in-app video timeline editor with reusable Remotion and ReelMade projects, layers, local save files, and export.",
+      "category": "Video",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/hands-visual-studio/package.json",
+      "sha256": "61f4f304d98594d58a94ecf254e0fdc6c9f91a21eae53be0a14d7bfe6cb024ba"
+    },
+    {
       "id": "remotion-studio",
       "name": "Remotion Studio",
       "version": "0.1.0",
