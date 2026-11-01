@@ -3,8 +3,8 @@
     "schema": 1,
     "id": "hands-visual-studio",
     "name": "HANDS Visual Studio",
-    "summary": "Full in-app video timeline editor with reusable Remotion and ReelMade projects, layers, local save files, and export.",
-    "version": "0.1.0",
+    "summary": "Editable element-level video projects with independent transparent figures, graphics, text, audio and motion; local HANDS timeline.",
+    "version": "0.2.0",
     "minCore": "1.2.57",
     "category": "Video",
     "author": "HANDS for GPT",
@@ -14,7 +14,7 @@
       "hands_start_process"
     ]
   },
-  "instructions": "HANDS Visual Studio is a downloadable on-device workspace. After installation, pin it from Tools and click its left sidebar entry. Every coded video must preserve its source project, a render preview (MP4), editable timeline data, and separate reusable image/audio/video assets. Place a visual-studio.json sidecar beside the render listing each independently editable asset in display coordinates and seconds; do not flatten elements that may need future movement, timing changes, or text edits. If source only provides an MP4, import it as a single baked layer and be explicit that internal objects cannot be separately manipulated. The visual editor stores revisioned project.hvs.json on the user's SSD when available, allows manual timeline and canvas changes, and exports an MP4 using locally installed FFmpeg. Do not overwrite original source videos or source code on save. Reopen projects from HANDS Visual Studio. For code/voice edit instructions, read the current .hvs.json state first and preserve manual changes on re-render. Local service at 127.0.0.1:5127 is part of signed HANDS desktop app v1.2.57+, never execute downloaded package scripts.",
+  "instructions": "Use HANDS Visual Studio with separate atomic elements, never only a final MP4. For every NEW video, first author scenegraph.json with stable unique element IDs and one independently editable layer per visible object: background, actor, prop, light, label, camera-facing overlay, audio. Compile with hands_scenegraph.py into a visual-studio.json plus elements/*.svg and transparent elements/*.png. Save scenegraph.json and code source, and edit the original objects through HANDS Visual Studio instead of only cutting scenes. Each layer supports start, duration, x/y, width/height, track, opacity, rotation, fades, and motion.toX/toY. For video/3D animations supply an isolated transparent source pass per object (ProRes 4444 with alpha when supported), or preserve the originating source scene graph and transform props. Flat MP4 imports can only be edited clip-by-clip. For existing ReelMade and Episode Studio generators, use scenegraph.json as a companion source contract, so their render scripts compile atomic layers automatically when present. Never render a separate flattened background containing visible objects that are also re-added as editable layers.",
   "recipes": [
     {
       "title": "Open and edit a HANDS video",
@@ -46,6 +46,23 @@
         },
         {
           "instruction": "Import the project in HANDS Visual Studio; preserve manual edits when changing the generation code."
+        }
+      ]
+    },
+    {
+      "title": "Generate an element-editable animation",
+      "steps": [
+        {
+          "instruction": "List every visible object and sound, assign unique stable element IDs and preserve code/3D source."
+        },
+        {
+          "instruction": "Author scenegraph.json and source transparent vector/image/video layers with independent layout, timing, and animation."
+        },
+        {
+          "instruction": "Compile with python3 hands_scenegraph.py PROJECT_FOLDER and import visual-studio.json in HANDS."
+        },
+        {
+          "instruction": "Edit one object visually, save the revision, export H.264, and verify the rest of the elements remain unchanged."
         }
       ]
     }

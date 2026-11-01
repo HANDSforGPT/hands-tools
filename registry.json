@@ -45,12 +45,12 @@
     {
       "id": "hands-visual-studio",
       "name": "HANDS Visual Studio",
-      "version": "0.1.0",
-      "description": "Full in-app video timeline editor with reusable Remotion and ReelMade projects, layers, local save files, and export.",
+      "version": "0.2.0",
+      "description": "Editable element-level video projects with independent transparent figures, graphics, text, audio and motion; local HANDS timeline.",
       "category": "Video",
       "author": "HANDS for GPT",
       "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/hands-visual-studio/package.json",
-      "sha256": "61f4f304d98594d58a94ecf254e0fdc6c9f91a21eae53be0a14d7bfe6cb024ba"
+      "sha256": "bbedf6ab92a87261977840c3e8069918e2bb39cc1011fb2e58b41b1576aa9e27"
     },
     {
       "id": "remotion-studio",
