@@ -1,0 +1,62 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "hands-sandbox",
+    "name": "HANDS Sandbox Engine",
+    "summary": "Optional isolated Linux VM for coding and tests. Runs only when explicitly authorized, with separate SSD storage and no host mounts.",
+    "version": "0.1.0",
+    "minCore": "1.2.29",
+    "category": "Developer",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_start_process",
+      "hands_read_process_output"
+    ]
+  },
+  "instructions": "HANDS Sandbox Engine v0.1 is an OPTIONAL Linux virtual-machine tool. The actual runner is separate source code at https://github.com/HANDSforGPT/hands-tools/tree/main/runtime/hands-sandbox. Installing this Tool Store package only installs instructions; it never installs Lima, downloads an OS, or exposes a new privileged MCP command.\nOn macOS 13.5+ the runner uses Lima's Apple Virtualization (vz) backend; Linux and Windows support are not yet implemented. Always check for limactl first using the existing authorized HANDS terminal. DO NOT treat a missing limactl binary as a VM that is ready.\nNever use Claude's own VM image or files, macOS private credentials, .ssh, user's home directory or Downloads as guest mounts. Guest VM has no mounted host folders; its outbound network is ENABLED by default, so this is isolation from the host filesystem, NOT a network air gap. The virtual disk has a configured size ceiling but cannot promise a hard physical storage quota.\nDo not provision or run a VM unless the user explicitly requests it, approves any downloads, and has enough external disk space. The runner uses HANDS_SANDBOX_HOME on a mounted external SSD; on this Mac default is /Volumes/EMTEC X200E/HANDS/Sandbox Engine. Do not silently fall back to the nearly full internal disk.\nTo install the runtime after getting permission: clone https://github.com/HANDSforGPT/hands-tools.git onto the approved external disk, then run node runtime/hands-sandbox/cli.mjs doctor. The GitHub repository's scripts are ordinary local source, not remotely executable code automatically authorized by installing this Tool Store item.\nCommands: node runtime/hands-sandbox/cli.mjs status (read-only); node runtime/hands-sandbox/cli.mjs doctor (read-only); node runtime/hands-sandbox/cli.mjs setup --approve (creates the VM after confirmation and may download an OS); node runtime/hands-sandbox/cli.mjs run --approve --network-aware --cmd 'python3 -c \"print(2+2)\"' (explicitly run a guest command; requires ordinary HANDS local terminal approval); node runtime/hands-sandbox/cli.mjs stop --approve.\nPrefer existing trusted native macOS HANDS tools for desktop interaction, local file and app operations, GPU/Remotion renders. Use VM only when isolated Linux execution is appropriate. Do not send API keys or other secrets into the guest. Check the approval and console output for every operation; never claim a VM operation completed before observing the result.",
+  "recipes": [
+    {
+      "title": "Readiness check (no install)",
+      "steps": [
+        {
+          "instruction": "Confirm mounted external SSD capacity, Node 20+, macOS version and Lima presence; do not modify files.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "Run node runtime/hands-sandbox/cli.mjs doctor from an approved checkout on the SSD.",
+          "command": "hands_start_process"
+        }
+      ]
+    },
+    {
+      "title": "Provision on request only",
+      "steps": [
+        {
+          "instruction": "Get explicit user approval to download a Linux image and use external SSD storage.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "With runtime installed on SSD, run setup --approve, then status. If Lima missing, report requirement rather than silently installing anything.",
+          "command": "hands_start_process"
+        }
+      ]
+    },
+    {
+      "title": "Isolated Linux command",
+      "steps": [
+        {
+          "instruction": "Check the network warning and request explicit approval for the guest command.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "Run node runtime/hands-sandbox/cli.mjs run --approve --network-aware --cmd 'echo sandbox-ready'; do not mount host files.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "Review the result, then verify VM stops; it is set to stop after each run.",
+          "command": "hands_read_process_output"
+        }
+      ]
+    }
+  ]
+}

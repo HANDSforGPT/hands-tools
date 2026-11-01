@@ -33,6 +33,16 @@
       "sha256": "1d68a4662765c2c1cf37b9723dad732111ba152c3e1a1f9748800e25113e1d0c"
     },
     {
+      "id": "hands-sandbox",
+      "name": "HANDS Sandbox Engine",
+      "version": "0.1.0",
+      "description": "Optional isolated Linux VM for coding and tests. Runs only when explicitly authorized, with separate SSD storage and no host mounts.",
+      "category": "Developer",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/hands-sandbox/package.json",
+      "sha256": "e274c9ed429309b6730005e0c1d70ba6a0ce354296de18c01f51a295110eddca"
+    },
+    {
       "id": "remotion-studio",
       "name": "Remotion Studio",
       "version": "0.1.0",
