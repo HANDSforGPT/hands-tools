@@ -13,6 +13,16 @@
       "sha256": "20a7cb11e7c614e92fe63d06733ecf1675dabd689fa07796c8d9b64d551db58e"
     },
     {
+      "id": "beat-finder",
+      "name": "Beat Finder",
+      "version": "0.1.0",
+      "description": "Find producer beats by genre, BPM and key, analyze uploaded songs, and convert authorized audio links to MP3/WAV.",
+      "category": "Audio",
+      "author": "HANDS for GPT",
+      "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/beat-finder/package.json",
+      "sha256": "4aad0cfe12f59d63c8b731650d38bd6f1ee28db440211fcd314e716cdbc494e3"
+    },
+    {
       "id": "github-connect",
       "name": "GitHub Workspace",
       "version": "0.1.0",

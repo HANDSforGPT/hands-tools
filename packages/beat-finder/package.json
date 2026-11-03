@@ -1,0 +1,54 @@
+{
+  "manifest": {
+    "schema": 1,
+    "id": "beat-finder",
+    "name": "Beat Finder",
+    "summary": "Find producer beats by genre, BPM and key, analyze uploaded songs, and convert authorized audio links to MP3/WAV.",
+    "version": "0.1.0",
+    "minCore": "1.2.29",
+    "category": "Audio",
+    "author": "HANDS for GPT",
+    "requires": [
+      "hands_start_process",
+      "hands_read_file",
+      "hands_list_directory"
+    ]
+  },
+  "instructions": "Beat Finder v0.1 is an optional local HANDS add-on with a separately installed macOS runtime. Tool Store JSON is an instructions package only (HANDS packages cannot execute code). Verified source: https://github.com/HANDSforGPT/hands-beat-finder . Check for installed runtime: ~/Library/Application Support/HANDS for GPT/Beat Finder/server.mjs. For explicit user installation, use HANDS terminal permission to clone https://github.com/HANDSforGPT/hands-beat-finder.git into an approved project directory and run bash hands-beat-finder/install.sh. Installer requires Node.js and FFmpeg and places app runtime in ~/Library/Application Support/HANDS for GPT/Beat Finder and a launcher in ~/Applications/HANDS Beat Finder.command. Local catalog data are kept separately. Launch through HANDS hands_start_process: bash \"$HOME/Library/Application Support/HANDS for GPT/Beat Finder/launch.command\" ; opens http://127.0.0.1:58983/ . UI: expandable beat cards with producer, genre, key, BPM, audio preview, purchase beat, purchase isolated stems if provided; filter by genre/key/tap BPM; key-finder upload up to 40 MB, estimate and apply key; import/export producer-supplied JSON beat catalogs. Never fabricate beats, producer names, prices or license grants. Download only authorized direct HTTPS audio file URLs, not paid beat previews, streams, store pages, video pages, or DRM. MP3 320kbps CBR, WAV 24-bit PCM; neither can restore lost fidelity. Key analysis is approximate, show confidence/alternatives. This module does not grant new MCP privileges or embed in the HANDS sidebar; the separate local UI launches in browser. Don't edit other HANDS tools.",
+  "recipes": [
+    {
+      "title": "Install Beat Finder",
+      "steps": [
+        {
+          "command": "hands_start_process",
+          "instruction": "After explicit user request, clone verified HANDSforGPT/hands-beat-finder repository to an approved project folder and run bash hands-beat-finder/install.sh. Check Node and FFmpeg prerequisites. Do not overwrite the user's catalog."
+        }
+      ]
+    },
+    {
+      "title": "Open Beat Finder",
+      "steps": [
+        {
+          "command": "hands_start_process",
+          "instruction": "Run bash \"$HOME/Library/Application Support/HANDS for GPT/Beat Finder/launch.command\" on the paired Mac. If missing, explain install process."
+        }
+      ]
+    },
+    {
+      "title": "Find beats matching a song",
+      "steps": [
+        {
+          "instruction": "Open Beat Finder, upload the audio into Key Finder, inspect musical key confidence, and click Find beats in this key. Then apply genre and tapped BPM filters. Source listings must be producer-provided."
+        }
+      ]
+    },
+    {
+      "title": "Convert an authorized beat or song",
+      "steps": [
+        {
+          "instruction": "Use only user-authorized direct HTTPS audio links, select MP3 320k or WAV 24-bit, and export from local application. No ripping paid previews, protected streams, or marketplace pages."
+        }
+      ]
+    }
+  ]
+}
