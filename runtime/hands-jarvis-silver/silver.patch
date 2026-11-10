@@ -1,0 +1,92 @@
+diff --git a/showcase/roamies/10-dither.js b/showcase/roamies/10-dither.js
+index 57061de..0b9a152 100644
+--- a/showcase/roamies/10-dither.js
++++ b/showcase/roamies/10-dither.js
+@@ -25,7 +25,10 @@
+     create(env) {
+       const { clamp, rand } = Roamie;
+       const S = (n) => Roamie.sfx?.play(n);
+-      const PAL = o.pal, L = PAL.length - 1;
++      // HANDS JARVIS Silver: preserve the original character palettes; switch only JARVIS.
++      const ORIGINAL_PAL = o.pal.map((rgb) => rgb.slice());
++      const SILVER_PAL = [[7, 10, 15], [68, 77, 89], [164, 178, 194], [246, 250, 255]];
++      const PAL = ORIGINAL_PAL.map((rgb) => rgb.slice()), L = PAL.length - 1;
+       const { n: PN, t: PT } = PATTERNS[o.pattern ?? 'bayer4'], PM = PN - 1;
+       // The dither pattern is pinned to the screen, or to the body while it follows the cursor (tox, toy: its cell),
+       // so the shading doesn't crawl across it as it moves.
+@@ -33,6 +36,11 @@
+       const th = (gx, gy) => PT[((gy - toy) & PM) * PN + ((gx - tox) & PM)];
+       const K = o.matrix ? 4 : 1;
+       const GAP = PAL[0].map((c) => (c * 0.7) | 0);
++      const setMetalPalette = (active) => {
++        const palette = active ? SILVER_PAL : ORIGINAL_PAL;
++        for (let i = 0; i < PAL.length; i++) PAL[i] = palette[Math.min(i, palette.length - 1)].slice();
++        for (let i = 0; i < 3; i++) GAP[i] = (PAL[0][i] * 0.7) | 0;
++      };
+       const SCAN = o.scan ?? 1;
+       const m = new Roamie.Mover(env, { speed: o.speed ?? 95, accel: 2.4 });
+       const face = new Roamie.Face();
+@@ -53,6 +61,7 @@
+       const drawn = (l) => (l === 'jarvis' ? Roamie.jarvis : Roamie.people?.[l]);
+       const pickLook = (l) => (drawn(l) ? l : 'classic');
+       let look = pickLook(typeof location !== 'undefined' ? new URLSearchParams(location.search).get('look') : null);
++      setMetalPalette(look === 'jarvis');
+       const jst = { spin: 0, dt: 0.016 };
+       const hands = [-1, 1].map((s) => ({ s, x: m.x, y: m.y, vx: 0, vy: 0 }));
+       const parts = [];
+@@ -96,7 +105,18 @@
+           else if (!clear || solid) { d[i] = GAP[0]; d[i + 1] = GAP[1]; d[i + 2] = GAP[2]; d[i + 3] = solid ? a : 255; }
+         }
+       };
+-      const put = (x, y, lvl = 0) => setPx(x, y, PAL[clamp(lvl, 0, L)]);
++      // A moving diagonal specular streak and restrained top lighting give the LED globe
++      // a brushed chrome / liquid platinum finish instead of the default green/blue dots.
++      const put = (x, y, lvl = 0) => {
++        const grade = clamp(lvl, 0, L);
++        if (look !== 'jarvis' || grade === 0) return setPx(x, y, PAL[grade]);
++        const phase = ((x * 0.92 + y * 0.48 - t * 4.6) % 71 + 71) % 71;
++        const specular = Math.exp(-(((phase - 35) / 7.5) ** 2)) * (grade / L) * 0.28;
++        const crown = (1 - clamp(y / Math.max(gh, 1), 0, 1)) * 0.10;
++        const intensity = 0.87 + crown + specular;
++        const base = PAL[grade];
++        return setPx(x, y, base.map((channel) => Math.min(255, Math.round(channel * intensity + specular * 19))));
++      };
+       // JARVIS draws points that overlap; the brightest one in each cell wins, then they're written once.
+       const jbuf = new Map();
+       const jput = (x, y, l) => {
+@@ -587,7 +607,7 @@
+         ghost: () => !!plug?.ghost?.(),
+         morph,
+         get look() { return look; },
+-        setLook(l) { look = pickLook(l); jst.spin = 0; jst.tail = null; },
++        setLook(l) { look = pickLook(l); setMetalPalette(look === 'jarvis'); jst.spin = 0; jst.tail = null; },
+         resize(env) {
+           lastEnv = env;
+           const S = Roamie.unit(env);
+diff --git a/showcase/tauri/src-tauri/tauri.conf.json b/showcase/tauri/src-tauri/tauri.conf.json
+index 33234c6..a65d2f0 100644
+--- a/showcase/tauri/src-tauri/tauri.conf.json
++++ b/showcase/tauri/src-tauri/tauri.conf.json
+@@ -1,8 +1,8 @@
+ {
+   "$schema": "https://schema.tauri.app/config/2",
+-  "productName": "Roamies",
++  "productName": "HANDS JARVIS Silver",
+   "version": "0.1.33",
+-  "identifier": "com.kenkai.roamies",
++  "identifier": "com.handsforgpt.jarvis-silver",
+   "build": {
+     "frontendDist": "../dist"
+   },
+@@ -38,10 +38,7 @@
+   "plugins": {
+     "updater": {
+       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ0MEI0NTJGMEY1NkNGNUYKUldSZnoxWVBMMFVMMUlXK2ROU3YyaDJVZy9scW56d081dEZwelE0SFBQeFVSVXRVYnZyY3BSd0cK",
+-      "endpoints": [
+-        "https://github.com/KenKaiii/Roamies/releases/latest/download/latest.json",
+-        "https://raw.githubusercontent.com/KenKaiii/Roamies/updates/latest.json"
+-      ],
++      "endpoints": [],
+       "windows": {
+         "installMode": "passive"
+       }

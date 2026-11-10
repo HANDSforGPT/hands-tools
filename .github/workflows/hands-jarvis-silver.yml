@@ -1,0 +1,52 @@
+name: Build HANDS JARVIS Silver (macOS Apple Silicon)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-arm64:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - name: Check out HANDS source + patch
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri CLI v2
+        run: cargo install tauri-cli --locked --version "^2"
+
+      - name: Rebuild pinned AGPL Roamies source with silver patch
+        env:
+          HANDS_JARVIS_HOME: ${{ runner.temp }}/hands-jarvis-silver/source
+        shell: bash
+        run: |
+          bash runtime/hands-jarvis-silver/launcher.sh --install
+          (cd "$HANDS_JARVIS_HOME/showcase/tauri/sidecar" && npm ci)
+          bash runtime/hands-jarvis-silver/launcher.sh --build
+
+      - name: Package unsigned macOS Apple Silicon app
+        env:
+          HANDS_JARVIS_HOME: ${{ runner.temp }}/hands-jarvis-silver/source
+        shell: bash
+        run: |
+          APP="$HANDS_JARVIS_HOME/showcase/tauri/src-tauri/target/release/bundle/macos/HANDS JARVIS Silver.app"
+          test -d "$APP"
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/HANDS-JARVIS-Silver-macOS-AppleSilicon.zip"
+
+      - name: Upload downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HANDS-JARVIS-Silver-macOS-AppleSilicon
+          path: ${{ runner.temp }}/HANDS-JARVIS-Silver-macOS-AppleSilicon.zip
+          if-no-files-found: error
+          retention-days: 30
