@@ -2,6 +2,13 @@ name: Build HANDS JARVIS Silver (macOS Apple Silicon)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - hands-jarvis-silver
+    paths:
+      - ".github/workflows/hands-jarvis-silver.yml"
+      - "packages/hands-jarvis-silver/**"
+      - "runtime/hands-jarvis-silver/**"
 
 permissions:
   contents: read
