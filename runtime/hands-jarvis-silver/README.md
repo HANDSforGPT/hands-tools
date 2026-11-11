@@ -1,50 +1,63 @@
-# HANDS JARVIS Silver
-## Roamies-derived desktop companion + HANDS tool module
+# HANDS JARVIS Silver · v0.2 usability upgrade
 
-A chrome/platinum JARVIS particle-sphere visual for the [Roamies](https://github.com/KenKaiii/Roamies) desktop app, plus a declarative [HANDS Tool Store](../../packages/hands-jarvis-silver/package.json) module for inspecting, installing, building, and launching it with HANDS' existing approved terminal commands.
+This companion is a modified [Roamies](https://github.com/KenKaiii/Roamies) desktop application distributed with the matching AGPL-3.0 source and a HANDS Tool Store instruction package. It is **not** a replacement for HANDS' own permission engine.
 
-**What is working in source:** the original JARVIS animation remains voice reactive; dot colors shift to charcoal, silver, platinum and white, with a diagonal moving specular sheen. Selecting another Roamies character restores its original colors. The modified app gets its own application name and bundle identifier; the upstream auto-update endpoints are cleared to avoid replacing this modified build with the unmodified release.
+## Working in source
 
-**What this is not:** it does not embed a native orb inside the HANDS window, call HANDS' MCP tools from Roamies, or automatically install executable code from the HANDS Tool Store. The companion retains its independent AI provider setup and optional Fish Audio voice. Full native HANDS/UI and permission-bridging integration is separate work.
+- Silver/platinum JARVIS orb with bright animated specular highlights; JARVIS is the default for new companion profiles.
+- Double-click the desktop orb to launch the existing HANDS application. Dragging, one-click reactions, native voice shortcuts, screen explanation and on-screen guidance retain their upstream behavior.
+- HANDS tab in the companion panel with a metal-and-graphite visual design.
+- Discover installed HANDS Tool Store module names from the authenticated Mac's local install directory, without exposing account folders or secrets.
+- A searchable/typed prompt field and quick presets for Visual Studio, Video Analyzer, True Voice and Live Mission Control.
+- **Review-first command handoff:** copies the bounded user-authored prompt to macOS clipboard and opens HANDS, where the user pastes and submits it. This is **not** autonomous HANDS command execution.
+- Read-only live render queue/status from the locally running HANDS Visual Studio service on loopback port 5127: project names, progress, stages, export presence and QA counts. No made-up or cached percentages.
+- The HANDS tab refreshes every six seconds only while visible. No network-facing listener, credentials, remote command endpoint or unrestricted file APIs.
+- Quick controls for existing microphone, desktop action and Stop operations; pause requests do not falsely claim they stopped independently running external jobs.
+- Optional manual edge docking, optional low-power panel animation and reduced-motion styling.
+- Recent prompt handoffs during the current panel session.
 
-### Files
+## Limitations and safety boundaries
 
-- `silver.patch`: modifications to the upstream JavaScript renderer and Tauri app configuration.
-- `launcher.sh`: an opt-in four-action helper: inspect, install pinned source, build, launch.
-- `NOTICE.md`: licensing and original attribution.
-- `../../packages/hands-jarvis-silver/package.json`: HANDS Store manifest (instructions only).
+This beta does not yet route JARVIS speech directly to HANDS' privileged tools, connect Fish Audio to HANDS True Voice, inherit HANDS Brain memory, or automatically detect full-screen games to hide itself. Those need a reviewed authenticated HANDS-side bridge and native QA. Native Roamies speech and screen features remain available with their own explicit permissions.
 
-### Reproducible source installation (macOS, Apple Silicon or Intel)
+The icon in macOS menu bar opens the existing Roamies panel. Select **HANDS** from the sidebar for these controls. Double-click the orb to open HANDS. All desktop actions inside HANDS continue through HANDS' own approval and usage model.
 
-Prerequisites: macOS **13.5+**, Git; for building, Node.js **22+**, Rust/Cargo, Tauri 2 CLI prerequisites, and Xcode Command Line Tools. The build may download additional dependencies. Allow sufficient storage.
+The macOS installer workflow publishes an **unsigned** Apple Silicon application ZIP as a GitHub Actions artifact if the build succeeds; it does not self-publish a trusted release, sign or notarize the app. The original upstream updater is disabled for this custom build to avoid replacing the silver derivative with the unmodified release.
 
-Clone this HANDS tool repository and inspect the script and patch first:
+## Build and installation
+
+### Quick inspection
 
 ```bash
 git clone https://github.com/HANDSforGPT/hands-tools.git
 cd hands-tools
 bash runtime/hands-jarvis-silver/launcher.sh --doctor
+```
+
+### Install source and compile
+
+Requires Git, Node.js 22+, Rust/Cargo, Tauri CLI v2, macOS 13.5+ and macOS development prerequisites. Build downloads can be large. Install on an external SSD by setting `HANDS_JARVIS_HOME` to an **empty** source destination.
+
+```bash
+export HANDS_JARVIS_HOME="/Volumes/EMTEC X200E/HANDS Projects/JARVIS Silver/Source"
 bash runtime/hands-jarvis-silver/launcher.sh --install
+(cd "$HANDS_JARVIS_HOME/showcase/tauri/sidecar" && npm ci)
 bash runtime/hands-jarvis-silver/launcher.sh --build
 bash runtime/hands-jarvis-silver/launcher.sh --launch
 ```
 
-Set `HANDS_JARVIS_HOME="/path/to/empty/source-directory"` to install sources on an external SSD. The installer refuses existing folders, pins the exact upstream commit, and checks that the patch applies. It does not run `--build` or `--launch` without being asked. Do not reinstall over working files.
+Do **not** run `--install` if that source directory already exists. The install script refuses overwriting a source directory. For the existing source on this Mac, set `HANDS_JARVIS_HOME` and run `--doctor`, followed by `--build` when build tools are available.
 
-Already-prepared user source on this Mac (do not patch it twice): `/Users/user/IronlinkProjects/HANDS-JARVIS-SILVER/Roamies`. To use that location:
+### GitHub download path
 
-```bash
-export HANDS_JARVIS_HOME="/Users/user/IronlinkProjects/HANDS-JARVIS-SILVER/Roamies"
-bash runtime/hands-jarvis-silver/launcher.sh --doctor
-```
+The HANDS tool manifest is at `packages/hands-jarvis-silver/package.json`. This manifest is declarative and never installs a separate executable. The GitHub Actions workflow `.github/workflows/hands-jarvis-silver.yml` builds a separately downloadable macOS Apple Silicon ZIP when successful.
 
-Choose **JARVIS** in the companion after launch. When distributing a built app, provide the matching AGPL-3.0 source, modification patch, third-party notices and install/build scripts. If distributing a signed/notarized macOS app, arrange your own signing/notarization.
+### Validation
 
-### Verification
+- `node --check` for the desktop, panel, renderer, and Node sidecar scripts
+- Apply `silver.patch` to an unmodified Roamies commit `bd1e411f9cf9c9f54aaa3e98d265d4c33b38ccc5`
+- `node scripts/build-registry.mjs && node scripts/validate.mjs` validates the HANDS Tool Store entry
+- Source tests for HANDS status filtering and no external shell execution are in `showcase/tauri/src-tauri/src/hands.rs`.
+- Test display interactions and privacy in an actual compiled macOS app before claiming runtime completion.
 
-- `node --check showcase/roamies/10-dither.js` — renderer syntax
-- `git diff --check` — patch whitespace sanity
-- `bash runtime/hands-jarvis-silver/launcher.sh --doctor` — local prerequisites and patch state
-- In the HANDS repo, `node scripts/build-registry.mjs && node scripts/validate.mjs` — registry checks
-
-**License:** AGPL-3.0. The original project and source are by KenKaiii and contributors, not HANDS. See [NOTICE.md](NOTICE.md).
+See [NOTICE.md](NOTICE.md) for Roamies attribution and AGPL-3.0 obligations.

@@ -1,3 +1,335 @@
+diff --git a/showcase/desktop.html b/showcase/desktop.html
+index 60c9313..74bb040 100644
+--- a/showcase/desktop.html
++++ b/showcase/desktop.html
+@@ -2,7 +2,7 @@
+ <html lang="en">
+ <head>
+ <meta charset="utf-8">
+-<title>Roamies on the desktop</title>
++<title>HANDS JARVIS Silver desktop companion</title>
+ <style>
+   /* Bubble and research-card text (the setup guide's body font). */
+   @font-face { font-family: "Martian Mono"; src: url("onboarding/fonts/martian-mono.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+diff --git a/showcase/panel/hands-page.js b/showcase/panel/hands-page.js
+new file mode 100644
+index 0000000..c06acdc
+--- /dev/null
++++ b/showcase/panel/hands-page.js
+@@ -0,0 +1,147 @@
++// HANDS JARVIS Silver control page. Declarative UI; no direct privileged operations.
++(() => {
++  'use strict';
++  window.HandsSilverPanel = {
++    create({ el, group, btn, link, invoke, act, note, redraw }) {
++      let live = { connected: false, projects: [], total: 0, error: 'Not checked yet' };
++      let installedModules = [], modulesLoaded = false;
++      let draft = '', recent = [], loading = false, poll = null;
++      let lowPower = false;
++      try { lowPower = localStorage.getItem('hands-silver-low-power') === '1'; } catch {}
++      document.body.classList.toggle('hands-low-power', lowPower);
++      let docked = false;
++      try { docked = localStorage.getItem('hands-silver-dock') === '1'; } catch {}
++      const presets = [
++        ['Visual Studio', 'Open HANDS Visual Studio and show me the active render queue.'],
++        ['Video Analyzer', 'Open HANDS Video Analyzer. Help me analyze a video and its visual style.'],
++        ['True Voice', 'Open HANDS True Voice and show the available voice synthesis controls.'],
++        ['Mission Control', 'Show my active HANDS jobs and failures in Live Mission Control.']
++      ];
++      const stamp = () => new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
++      const refresh = async () => {
++        if (loading) return;
++        loading = true;
++        if (!modulesLoaded) {
++          try {
++            const found = await invoke('hands_modules');
++            if (Array.isArray(found)) { installedModules = found; modulesLoaded = true; }
++          } catch { /* native module listing is unavailable in browser preview */ }
++        }
++        try {
++          const result = await invoke('hands_snapshot');
++          if (result && typeof result === 'object' && Array.isArray(result.projects)) {
++            live = result;
++          } else {
++            live = { connected: false, projects: [], total: 0, error: 'Requires the compiled HANDS JARVIS Silver app' };
++          }
++        } catch (err) {
++          live = { connected: false, projects: [], total: 0, error: String(err?.message || err) };
++        } finally { loading = false; redraw(); }
++      };
++      const activate = (name) => {
++        if (poll) { clearInterval(poll); poll = null; }
++        if (name === 'hands') {
++          refresh();
++          invoke('hands_dock', { on: docked }).catch(() => {});
++          poll = setInterval(() => { if (!document.hidden) refresh(); }, 6000);
++        }
++      };
++      const open = async () => {
++        try {
++          const ok = await invoke('hands_open');
++          note(ok ? 'Requested HANDS app launch.' : 'HANDS could not be opened.', !ok);
++        } catch { note('HANDS app launch requires the compiled macOS companion.', true); }
++      };
++      const handoff = async (value) => {
++        const text = String(value || '').trim();
++        if (!text || text.length > 1200) { note('Enter a request (maximum 1200 characters).', true); return; }
++        try {
++          const response = await invoke('hands_handoff', { prompt: text });
++          if (!response?.copied) throw Error('Clipboard handoff was not confirmed');
++          recent.unshift({ text, at: stamp() }); recent = recent.slice(0, 4);
++          note(response.opened ? 'Copied. Paste into HANDS to review and run.' : 'Copied. Open HANDS and paste to continue.');
++          redraw();
++        } catch (err) { note('Handoff unavailable: ' + String(err?.message || err), true); }
++      };
++      const choice = (title, text) => btn(title, () => { draft = text; redraw(); }, { k: 'hands-workflow-' + title.toLowerCase().replace(/[^a-z]+/g, '-') });
++      const meter = (p) => {
++        const v = Math.min(100, Math.max(0, Number(p.progress) || 0));
++        const qa = p.qa || {};
++        const state = p.active ? 'Rendering' : p.finished ? 'Exported' : 'Not rendering';
++        const title = el('div', { className: 'hands-project-title' },
++          el('strong', { textContent: p.name || 'Untitled' }),
++          el('span', { textContent: String(Math.round(v)) + '%' }));
++        const meta = el('div', { className: 'hands-project-meta', textContent:
++          state + (p.stage ? ' · ' + p.stage : '') + ((qa.fail || qa.warn) ? ' · QA ' + (qa.fail || 0) + ' failed / ' + (qa.warn || 0) + ' warnings' : '') });
++        return el('li', { className: 'hands-project' }, title,
++          el('progress', { className: 'hands-progress', max: 100, value: v, 'aria-label': 'Render progress for ' + p.name }),
++          meta);
++      };
++      function page(state) {
++        const command = el('textarea', { className: 'hands-prompt', rows: 3,
++          value: draft, placeholder: 'Ask HANDS to open a tool, analyze a video, continue a project…',
++          'aria-label': 'Request for HANDS', maxLength: 1200,
++          on: { input: (e) => { draft = e.target.value; } } });
++        const projects = (live.projects || []).slice().sort((a, b) => Number(b.active) - Number(a.active));
++        return [
++          group('HANDS CONTROLLER', 'A direct path to your existing HANDS tools. Permissions remain with HANDS.', null,
++            el('div', { className: 'hands-connection' },
++              el('span', { className: 'hands-signal' + (live.connected ? ' on' : '') }),
++              el('span', { textContent: live.connected ? 'Visual Studio connected · ' + live.total + ' projects' : 'Visual Studio offline' })),
++            el('div', { className: 'actions' }, btn('Open HANDS', open, { kind: 'primary', k: 'hands-open' }),
++              btn('Refresh status', refresh, { k: 'hands-refresh', disabled: loading })),
++            !live.connected ? el('p', { className: 'hands-hint', textContent: live.error || 'Start HANDS Visual Studio to see live projects.' }) : null),
++          installedModules.length ? group('Installed HANDS tools', 'Discovered locally from your installed module manifests; select one to prepare a handoff.', installedModules.length,
++            el('div', { className: 'hands-presets' },
++              installedModules.slice(0, 24).map((tool) => choice(tool.name,
++                'Open my installed HANDS tool named ' + tool.name + ' and show its available actions.')))) : null,
++          group('Quick command', 'Choose a workflow or type a request. Handoff copies text; you review and submit it inside HANDS.', null,
++            el('div', { className: 'hands-presets' }, presets.map(([name, text]) => choice(name, text))),
++            command,
++            el('div', { className: 'actions' },
++              btn('Copy + open HANDS', () => handoff(draft), { kind: 'primary', k: 'hands-send' }),
++              link('Clear', () => { draft = ''; redraw(); }, { k: 'hands-clear' }))),
++          group('Live render queue', live.connected ? 'Read-only project statuses from HANDS Visual Studio, refreshed every six seconds.' : 'No guessed percentages or placeholder jobs.', live.connected ? live.total : null,
++            projects.length ? el('ul', { className: 'hands-projects' }, projects.slice(0, 10).map(meter))
++              : el('p', { className: 'hands-hint', textContent: live.connected ? 'No render projects reported.' : 'Connect to HANDS Visual Studio to see real render progress.' })),
++          group('Privacy and control', 'JARVIS respects the existing Roamies and HANDS permissions. HANDS actions always need their own authorization.', null,
++            el('div', { className: 'hands-privacy' },
++              el('span', { textContent: 'Microphone' }), el('strong', { textContent: state.voice?.on ? 'Enabled' : 'Off' }),
++              btn(state.voice?.on ? 'Disable microphone' : 'Voice settings', () => state.voice?.on ? act('voice') : (document.getElementById('nav-voice')?.click()), { k: 'hands-mic' }),
++              el('span', { textContent: 'Roamies file / computer actions' }), el('strong', { textContent: state.actions ? 'Enabled' : 'Off' }),
++              btn(state.actions ? 'Disable actions' : 'Behavior settings', () => state.actions ? act('actions') : (document.getElementById('nav-behavior')?.click()), { k: 'hands-actions' })),
++            btn('Stop reply + disable mic/actions', () => {
++              act('stop');
++              if (state.voice?.on) act('voice');
++              if (state.actions) act('actions');
++              note('Requested pause. Running external HANDS jobs may continue; use Mission Control to manage them.');
++            }, { k: 'hands-pause' })),
++          group('Floating orb', 'Dock JARVIS along the nearest screen edge while idle.', null,
++            el('div', { className: 'setting' },
++              el('span', {}, 'Edge docking', el('small', { textContent: 'Dragging and normal HANDS work still take priority.' })),
++              btn(docked ? 'On' : 'Off', async () => {
++                const desired = !docked;
++                try {
++                  await invoke('hands_dock', { on: desired });
++                  docked = desired;
++                  try { localStorage.setItem('hands-silver-dock', docked ? '1' : '0'); } catch {}
++                  redraw();
++                } catch { note('Docking requires the compiled JARVIS companion.', true); }
++              }, { k: 'hands-dock' }))),
++          group('Performance', 'Lower animation activity when you prefer a quieter panel.', null,
++            el('div', { className: 'setting' },
++              el('span', {}, 'Low-power animation', el('small', { textContent: 'Limits panel animation updates; does not affect HANDS renders.' })),
++              btn(lowPower ? 'On' : 'Off', () => {
++                lowPower = !lowPower; document.body.classList.toggle('hands-low-power', lowPower);
++                try { localStorage.setItem('hands-silver-low-power', lowPower ? '1' : '0'); } catch {}
++                redraw();
++              }, { k: 'hands-power' }))),
++          recent.length ? group('Recent handoffs', 'This panel session only. HANDS maintains its own project history.', recent.length,
++            el('ul', { className: 'hands-recent' }, recent.map((r) =>
++              el('li', {}, el('span', { textContent: r.text }), el('small', { textContent: r.at }))))) : null
++        ].filter(Boolean);
++      }
++      return { page, activate, refresh };
++    }
++  };
++})();
+diff --git a/showcase/panel/hands-silver.css b/showcase/panel/hands-silver.css
+new file mode 100644
+index 0000000..cbdbc75
+--- /dev/null
++++ b/showcase/panel/hands-silver.css
+@@ -0,0 +1,67 @@
++/* HANDS JARVIS Silver · restrained chrome, graphite and polished platinum */
++:root {
++  --bg: #080b11;
++  --panel: #101723;
++  --ink: #f3f7fc;
++  --ink-2: #c1ccd9;
++  --ink-3: #8795a8;
++  --accent: #d2ddeb;
++  --accent-hi: #f9fbff;
++  --accent-lo: #a1b0c2;
++  --accent-ink: #101723;
++  --line: #334052;
++  --line-hi: #66768d;
++  --line-hot: #b0bfd2;
++}
++.frame {
++  background:
++    radial-gradient(ellipse 80% 18% at 53% 0%, rgba(231,239,255,.13), transparent 75%),
++    radial-gradient(circle at 50% 50%, rgba(190,203,221,.055) .85px, transparent 1.3px) 0 0 / 10px 10px,
++    linear-gradient(160deg,#111926 0%,#080b12 65%,#111721 100%);
++  border-color: #5b687c;
++}
++.avatar, .maker canvas {
++  background: radial-gradient(closest-side,rgba(227,235,246,.12),transparent) 50% 92%/70% 22% no-repeat;
++}
++.looktile[aria-checked="true"] { --fill: #182231; }
++.hands-connection {
++  display: flex; gap: 9px; align-items: center; margin: 2px 0 12px;
++  color: var(--ink-2); font: 600 11px/1.4 var(--mono);
++}
++.hands-signal { width: 8px; height: 8px; border-radius: 50%; background: #6c7582; box-shadow: 0 0 0 2px #1f2631; }
++.hands-signal.on { background: #cce5ee; box-shadow: 0 0 9px #8dabb9; }
++.hands-hint { color: var(--ink-3); font-size: 11px; line-height: 1.5; margin: 8px 0; }
++.hands-presets { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; margin: 4px 0 12px; }
++.hands-presets .btn { width: 100%; min-height: 33px; }
++.hands-prompt {
++  display: block; width: 100%; min-height: 82px; padding: 12px; margin: 2px 0 10px;
++  font: 500 12px/1.5 var(--mono); resize: vertical; color: var(--ink);
++  background: linear-gradient(140deg,#1c2431,#0c121b);
++  border: 1px solid #58677a; border-radius: 7px; outline: none;
++  box-shadow: inset 0 1px 3px #03060a, 0 1px rgba(255,255,255,.08);
++}
++.hands-prompt:focus-visible { border-color: #dfebfa; box-shadow: 0 0 0 2px rgba(201,224,247,.2); }
++.hands-prompt::placeholder { color: #8491a3; }
++.hands-projects, .hands-recent { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
++.hands-project {
++  display: grid; gap: 6px; padding: 10px; border: 1px solid #384559; border-radius: 8px;
++  background: linear-gradient(155deg,rgba(233,242,255,.08),rgba(11,17,28,.35) 70%);
++}
++.hands-project-title { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
++.hands-project-title strong { overflow-wrap: anywhere; font: 700 11px/1.4 var(--mono); color: #edf4ff; }
++.hands-project-title span { font: 700 11px/1.3 var(--mono); color: #dce8f7; }
++.hands-progress { display: block; width: 100%; height: 6px; appearance: none; -webkit-appearance: none; border: 0; background: #303a49; border-radius: 4px; }
++.hands-progress::-webkit-progress-bar { background: #303a49; border-radius: 4px; }
++.hands-progress::-webkit-progress-value { background: linear-gradient(90deg,#637184 0%,#c0cedf 65%,#f6faff 100%); border-radius: 4px; box-shadow: 0 0 8px rgba(207,222,242,.26); }
++.hands-project-meta { font-size: 10px; color: #a0b0c3; }
++.hands-privacy { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px 8px; margin-bottom: 12px; }
++.hands-privacy span { color: var(--ink-2); }
++.hands-privacy strong { font-size: 11px; color: var(--ink); text-align: right; }
++.hands-privacy .btn { grid-column: 1 / -1; justify-self: start; margin-bottom: 7px; }
++.hands-recent li { display: flex; gap: 12px; justify-content: space-between; border-bottom: 1px solid #344154; padding: 6px 0; overflow-wrap: anywhere; }
++.hands-recent li span { min-width: 0; }
++.hands-recent li small { color: var(--ink-3); white-space: nowrap; }
++.hands-low-power .frame.opening, .hands-low-power .frame.shutting, .hands-low-power .pane.enter > * { animation: none !important; }
++@media (prefers-reduced-motion: reduce) {
++  .hands-project, .hands-progress { transition: none !important; animation: none !important; }
++}
+diff --git a/showcase/panel/index.html b/showcase/panel/index.html
+index addc847..5616f73 100644
+--- a/showcase/panel/index.html
++++ b/showcase/panel/index.html
+@@ -5,6 +5,7 @@
+ <title>Roamies</title>
+ <link rel="stylesheet" href="../onboarding/onboarding.css">
+ <link rel="stylesheet" href="panel.css">
++<link rel="stylesheet" href="hands-silver.css">
+ </head>
+ <body>
+ <div class="frame shut" id="frame">
+@@ -29,6 +30,7 @@
+     <ul class="nav">
+       <li><button class="px navi" type="button" id="nav-home" data-page="home" aria-controls="pane-home" aria-current="page">Home<span class="dot" aria-hidden="true"></span></button></li>
+       <li><button class="px navi" type="button" id="nav-memory" data-page="memory" aria-controls="pane-memory">Memory<span class="dot" aria-hidden="true"></span></button></li>
++      <li><button class="px navi" type="button" id="nav-hands" data-page="hands" aria-controls="pane-hands">HANDS<span class="dot" aria-hidden="true"></span></button></li>
+     </ul>
+     <p class="side-label" id="side-settings">Settings</p>
+     <ul class="nav" aria-labelledby="side-settings">
+@@ -42,6 +44,7 @@
+   <main class="body">
+     <section class="pane" id="pane-home" aria-labelledby="nav-home"></section>
+     <section class="pane" id="pane-memory" aria-labelledby="nav-memory" hidden></section>
++    <section class="pane" id="pane-hands" aria-labelledby="nav-hands" hidden></section>
+     <section class="pane" id="pane-model" aria-labelledby="nav-model" hidden></section>
+     <section class="pane" id="pane-appearance" aria-labelledby="nav-appearance" hidden></section>
+     <section class="pane" id="pane-voice" aria-labelledby="nav-voice" hidden></section>
+@@ -58,6 +61,7 @@
+ <script src="../roamies/jarvis.js"></script>
+ <script src="../roamies/people.js"></script>
+ <script src="../roamies/10-dither.js"></script>
++<script src="hands-page.js"></script>
+ <script src="panel.js"></script>
+ </body>
+ </html>
+diff --git a/showcase/panel/panel.js b/showcase/panel/panel.js
+index 30d8b37..17f355a 100644
+--- a/showcase/panel/panel.js
++++ b/showcase/panel/panel.js
+@@ -53,6 +53,8 @@
+   const group = (title, desc, n, ...kids) => el('div', { className: 'group' },
+     el('div', { className: 'ghead' }, el('h2', {}, title, n != null ? el('span', { className: 'n', textContent: String(n) }) : null), desc ? el('p', { textContent: desc }) : null),
+     ...kids);
++  // The HANDS page is a review-first app handoff; it never calls a privileged tool.
++  const hands = window.HandsSilverPanel.create({ el, group, btn, link, invoke, act, note: (message, bad) => note(message, bad), redraw: () => render() });
+   const toggle = (label, hint, on, onflip, k) => el('div', { className: 'setting' },
+     el('span', { id: `lbl-${k}` }, label, hint ? el('small', { textContent: hint }) : null),
+     el('button', { className: 'px switch', type: 'button', role: 'switch', 'aria-checked': String(!!on), 'aria-labelledby': `lbl-${k}`, 'data-k': k, on: { click: onflip } }));
+@@ -209,8 +211,9 @@
+   let lastFrame = 0;
+   function loop(now) {
+     requestAnimationFrame(loop);
+-    const dt = Math.min(1 / 30, (now - (lastFrame || now)) / 1000); lastFrame = now;
+     if (document.hidden || $('frame').classList.contains('shut')) return;
++    if (document.body.classList.contains('hands-low-power') && now - lastFrame < 65) return;
++    const dt = Math.min(1 / 30, (now - (lastFrame || now)) / 1000); lastFrame = now;
+     for (const { me, canvas } of live) if (canvas.isConnected && canvas.offsetParent) me.step(dt);
+   }
+   requestAnimationFrame(loop);
+@@ -471,13 +474,13 @@
+   }
+ 
+   // ---------------------------------------------------------------- render
+-  const PANES = { home, memory, model: modelPage, appearance: appearancePage, voice: voicePage, behavior: behaviorPage, about: aboutPage };
++  const PANES = { home, memory, hands: () => hands.page(state), model: modelPage, appearance: appearancePage, voice: voicePage, behavior: behaviorPage, about: aboutPage };
+   // focusKey: what to focus after (a data-k, or an element id); otherwise whatever had focus keeps it.
+   function render(focusKey, animate = false) {
+     if (!state) return;
+     const active = document.activeElement;
+     // Never rebuild under someone typing a key: catch up when they leave the field.
+-    if (!focusKey && !animate && active?.tagName === 'INPUT' && active.closest('.pane')) { deferred = true; return; }
++    if (!focusKey && !animate && ['INPUT','TEXTAREA'].includes(active?.tagName) && active.closest('.pane')) { deferred = true; return; }
+     deferred = false;
+     const keep = focusKey ?? active?.dataset?.k ?? (active?.id?.startsWith('key-') ? active.id : null);
+     hideTip();
+@@ -496,7 +499,7 @@
+     }
+     if (keep) (document.querySelector(`.pane [data-k="${CSS.escape(keep)}"]`) ?? document.getElementById(keep))?.focus();
+   }
+-  document.addEventListener('focusout', (e) => { if (deferred && e.target.tagName === 'INPUT') setTimeout(() => deferred && render(), 0); });
++  document.addEventListener('focusout', (e) => { if (deferred && ['INPUT','TEXTAREA'].includes(e.target.tagName)) setTimeout(() => deferred && render(), 0); });
+ 
+   let noteTimer = 0;
+   function note(text, bad = false) {
+@@ -513,6 +516,7 @@
+     const changed = name !== tab;
+     if (!changed && !focus) return;
+     tab = name;
++    hands.activate(name);
+     disarm(); ui.key = null;
+     for (const t of TABS) {
+       if (t === name) navi(t).setAttribute('aria-current', 'page'); else navi(t).removeAttribute('aria-current');
 diff --git a/showcase/roamies/10-dither.js b/showcase/roamies/10-dither.js
 index 57061de..0b9a152 100644
 --- a/showcase/roamies/10-dither.js
@@ -63,6 +395,308 @@ index 57061de..0b9a152 100644
          resize(env) {
            lastEnv = env;
            const S = Roamie.unit(env);
+diff --git a/showcase/roamies/agent.js b/showcase/roamies/agent.js
+index ab95428..3f669b0 100644
+--- a/showcase/roamies/agent.js
++++ b/showcase/roamies/agent.js
+@@ -168,6 +168,16 @@
+       return [(S.l + S.r) / 2, (S.t + S.b) / 2];
+     };
+     const setStation = (x, y, byCursor = null) => { station.x = x; station.y = y; station.byCursor = byCursor; m.anchor = { x, y, r: k.R * 0.35 }; };
++    // Optional HANDS dock: park at the nearest screen edge when idle, without trapping input.
++    let docked = false;
++    const dockNow = () => {
++      if (!docked || !visible() || pen.held || m.dragging || b || tool) return;
++      const S = bounds(), r = m.radius * 1.3;
++      const x = m.x > (S.l + S.r) / 2 ? S.r - r : S.l + r;
++      const y = clamp(m.y, S.t + r * 1.25, S.b - r * 1.25);
++      setStation(x, y); m.goTo(x, y); station.moving = true;
++      fol.on = false; m.drive = null;
++    };
+     // Pop up right beside the cursor, like a buddy at your elbow: to its right and a little below the tip
+     // (the arrow's body points down-right), else its left, else above or below. Bubbles then open on the
+     // side away from the cursor, so whatever it's pointing at stays visible.
+@@ -920,6 +930,11 @@
+         setStation(x, y); m.x = x; m.y = y; m.vx = m.vy = 0; m.mode = 'rest'; m.rest = 1;
+         station.moving = false; station.flee = 0; station.quietUntil = now + 1;
+       },
++      setDock: (on) => {
++        docked = !!on;
++        if (docked) dockNow();
++        else if (visible()) comeToCursor();
++      },
+       setAuto: (on, idle) => { presence.auto = !!on; if (idle) presence.idle = idle; presence.lastActive = now; },
+       get visible() { return visible(); },
+       // The speech bubble is still typing its words out.
+@@ -1141,6 +1156,10 @@
+             setStation(m.x, m.y); station.quietUntil = now + 2.5; station.moving = false;
+           }
+           station.held = held;
++          if (docked && !held && !b && !tool && !pen.held && !station.moving) {
++            const S = bounds(), rr = m.radius * 1.3;
++            if (Math.min(Math.abs(m.x - (S.l + rr)), Math.abs(m.x - (S.r - rr))) > k.R * 0.9) dockNow();
++          }
+           // Popped up beside the cursor: it goes where the cursor goes (until it's dragged somewhere).
+           if (pen.held) { fol.on = false; m.drive = held ? null : penDrive; station.flee = 0; }
+           else if (!held && station.byCursor && presence.ptr) { follow(env, dt); station.flee = 0; }
+diff --git a/showcase/roamies/core.js b/showcase/roamies/core.js
+index aa38311..951756f 100644
+--- a/showcase/roamies/core.js
++++ b/showcase/roamies/core.js
+@@ -602,6 +602,7 @@
+       m.dragging = true; m.flung = false; m.grabX = e.clientX - m.x; m.grabY = e.clientY - m.y;
+       o.c.grab?.(e.clientX, e.clientY);
+     });
++    let lastOrbTapAt = 0;
+     const release = (e) => {
+       if (!down) return;
+       const { o, x, y, t } = down; down = null;
+@@ -609,6 +610,10 @@
+       m.dragging = false;
+       if (Math.hypot(e.clientX - x, e.clientY - y) < 6 && performance.now() - t < 320) {
+         c.face?.set('happy', 1.6); c.boop?.(e.clientX, e.clientY); m.mode = 'rest'; m.rest = 1.4;
++        // Double-click the floating orb to launch HANDS. Drags and taps retain upstream behavior.
++        const now = performance.now();
++        if (now - lastOrbTapAt < 420) { lastOrbTapAt = 0; R.onOrbDoubleClick?.(); }
++        else lastOrbTapAt = now;
+       } else if (m.speed > 220) m.flung = true;
+       else { m.mode = 'rest'; m.rest = 1; }
+     };
+diff --git a/showcase/roamies/host.js b/showcase/roamies/host.js
+index 6d2f22a..38dfbc4 100644
+--- a/showcase/roamies/host.js
++++ b/showcase/roamies/host.js
+@@ -7,6 +7,8 @@
+   if (!invoke) return;
+   const send = (msg) => invoke('sidecar_send', { msg }).catch(() => {});
+   const typing = (on) => invoke('set_typing', { on }).catch(() => {});
++  // A deliberate orb double-click opens the existing HANDS app, without injecting keyboard events.
++  Roamie.onOrbDoubleClick = () => invoke('hands_open').catch(() => {});
+   // Drawings (ink.js) talk to the sidecar (started, waits done, buttons, closed cards) and arm the shell's click watch.
+   if (Roamie.ink) { Roamie.ink.send = send; Roamie.ink.invoke = (cmd, args) => invoke(cmd, args).catch(() => {}); }
+   window.__roamieClick = (x, y) => Roamie.ink?.click(x, y);
+@@ -387,6 +389,7 @@
+     if (m.kind === 'speech') { Roamie.voiceOut?.handle(m); return; } // plays on, even while it changes screens
+     if (held) { held.q.push(m); return; }
+     if (m.kind === 'sound') { if (Roamie.sfx) Roamie.sfx.enabled = m.on; return; }
++    if (m.kind === 'jarvis_dock') { getAgent()?.setDock?.(!!m.on); return; }
+     if (m.kind === 'size') { for (const t of Roamie.tiles ?? []) t.creature.setForm?.(m.size); return; }
+     if (m.kind === 'look') {
+       for (const t of Roamie.tiles ?? []) t.creature.setLook?.(m.look);
+@@ -457,6 +460,7 @@
+     const a = getAgent();
+     if (!a) return setTimeout(ready, 150);
+     a.setAuto(true);
++    try { a.setDock?.(localStorage.getItem('hands-silver-dock') === '1'); } catch {}
+     a.hide({ instant: true });
+     send({ type: 'ui_ready' });
+   };
+diff --git a/showcase/tauri/sidecar/sidekick.mjs b/showcase/tauri/sidecar/sidekick.mjs
+index cbf9ade..57602d2 100644
+--- a/showcase/tauri/sidecar/sidekick.mjs
++++ b/showcase/tauri/sidecar/sidekick.mjs
+@@ -81,7 +81,7 @@ const DEFAULT_KEYS = process.platform === 'win32'
+   : { talk: ['control', 'option'], summon: 'Control+Alt+KeyS', snap: 'Control+Alt+KeyA', list: 'Control+Alt+KeyL' };
+ const DEFAULTS = {
+   provider: null, model: null, sound: true, allowActions: false, voice: true,
+-  onboarded: false, onboardStep: 0, filesAsked: false, keys: DEFAULT_KEYS, muteWhileTalking: true, autoListen: false, setupVersion: 0, size: 'default', look: 'classic', introDone: false,
++  onboarded: false, onboardStep: 0, filesAsked: false, keys: DEFAULT_KEYS, muteWhileTalking: true, autoListen: false, setupVersion: 0, size: 'default', look: 'jarvis', introDone: false,
+   replies: 'text', // 'voice': spoken with Fish Audio as well as shown
+   fishModel: FISH_CHOICES[0].id, // Drama 3 (most expressive) or S2.1 Pro (natural pace, cheaper)
+ };
+diff --git a/showcase/tauri/src-tauri/src/hands.rs b/showcase/tauri/src-tauri/src/hands.rs
+new file mode 100644
+index 0000000..ff1c310
+--- /dev/null
++++ b/showcase/tauri/src-tauri/src/hands.rs
+@@ -0,0 +1,154 @@
++// HANDS JARVIS Silver integration.
++// Fixed, read-only, loopback render status and explicit user-initiated HANDS handoff.
++// No shell interpolation, network-facing listener, credentials, or arbitrary commands.
++use serde_json::{json, Value};
++use std::io::Write;
++use std::process::{Command, Stdio};
++
++fn safe_render_status(raw: &Value) -> Option<Value> {
++    let projects = raw.get("projects")?.as_array()?;
++    let items: Vec<Value> = projects.iter().take(40).map(|p| {
++        let stage = p.get("stages").and_then(Value::as_array).and_then(|stages| {
++            stages.iter().find(|s| {
++                matches!(
++                    s.get("status").and_then(Value::as_str),
++                    Some("running") | Some("active") | Some("in_progress")
++                )
++            }).and_then(|s| s.get("name")).and_then(Value::as_str)
++        }).unwrap_or("");
++        json!({
++            "id": p.get("id").and_then(Value::as_str).unwrap_or(""),
++            "name": p.get("name").and_then(Value::as_str).unwrap_or("Untitled"),
++            "progress": p.get("progress").and_then(Value::as_f64).unwrap_or(0.0).clamp(0.0, 100.0),
++            "state": p.get("state").and_then(Value::as_str).unwrap_or("unknown"),
++            "active": p.get("processActive").and_then(Value::as_bool).unwrap_or(false),
++            "finished": p.get("filmExists").and_then(Value::as_bool).unwrap_or(false),
++            "stage": stage,
++            "qa": {
++                "pass": p.pointer("/qaCounts/pass").and_then(Value::as_u64).unwrap_or(0),
++                "warn": p.pointer("/qaCounts/warn").and_then(Value::as_u64).unwrap_or(0),
++                "fail": p.pointer("/qaCounts/fail").and_then(Value::as_u64).unwrap_or(0)
++            },
++            "updated": p.get("outputUpdatedAt").and_then(Value::as_str).unwrap_or("")
++        })
++    }).collect();
++    Some(json!({"connected": true, "projects": items, "total": projects.len()}))
++}
++
++#[tauri::command]
++pub(crate) fn hands_snapshot() -> Value {
++    // The Visual Studio daemon is the source of truth. Never invent progress values.
++    // No user-supplied URL is accepted: SSRF and LAN discovery are not supported.
++    let output = Command::new("curl")
++        .args(["--silent", "--show-error", "--fail", "--max-time", "2",
++               "--noproxy", "*", "http://127.0.0.1:5127/api/render-projects"])
++        .output();
++    match output {
++        Ok(o) if o.status.success() && o.stdout.len() <= 1_500_000 => {
++            let status = serde_json::from_slice::<Value>(&o.stdout)
++                .ok().and_then(|v| safe_render_status(&v));
++            status.unwrap_or_else(|| json!({"connected": false, "projects": [], "error": "Invalid Visual Studio status response"}))
++        }
++        _ => json!({"connected": false, "projects": [], "error": "HANDS Visual Studio is offline or unavailable"})
++    }
++}
++
++/// Lists only installed HANDS module names/IDs, not account identifiers or file paths.
++#[tauri::command]
++pub(crate) fn hands_modules() -> Vec<Value> {
++    use std::fs;
++    let home = match std::env::var("HOME") { Ok(home) => home, Err(_) => return vec![] };
++    let accounts = std::path::Path::new(&home)
++        .join("Library/Application Support/HANDS for GPT/modules-v1/accounts");
++    let mut result = Vec::new();
++    let Ok(roots) = fs::read_dir(accounts) else { return result };
++    for root in roots.flatten().take(3) {
++        if !root.path().is_dir() { continue; }
++        let Ok(modules) = fs::read_dir(root.path()) else { continue };
++        for entry in modules.flatten().take(80) {
++            if !entry.path().is_dir() { continue; }
++            let path = entry.path().join("manifest.json");
++            let Ok(bytes) = fs::read(&path) else { continue };
++            if bytes.len() > 16_384 { continue; }
++            let Ok(data) = serde_json::from_slice::<Value>(&bytes) else { continue };
++            let (Some(id), Some(name)) = (
++                data.get("id").and_then(Value::as_str),
++                data.get("name").and_then(Value::as_str)
++            ) else { continue };
++            if id.len() > 50 || name.len() > 90 || !id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
++                continue;
++            }
++            result.push(json!({ "id": id, "name": name }));
++            if result.len() == 40 { break; }
++        }
++        if result.len() == 40 { break; }
++    }
++    result.sort_by(|a, b| {
++        let ax = a.get("name").and_then(Value::as_str).unwrap_or("");
++        let bx = b.get("name").and_then(Value::as_str).unwrap_or("");
++        ax.to_ascii_lowercase().cmp(&bx.to_ascii_lowercase())
++    });
++    result
++}
++
++#[tauri::command]
++pub(crate) fn hands_open() -> Result<bool, String> {
++    #[cfg(target_os = "macos")]
++    {
++        let status = Command::new("/usr/bin/open").args(["-a", "HANDS for GPT"])
++            .status().map_err(|_| "Could not locate the HANDS application".to_string())?;
++        return Ok(status.success());
++    }
++    #[cfg(not(target_os = "macos"))]
++    {
++        Err("Automatic application opening is currently supported only on macOS".into())
++    }
++}
++
++#[tauri::command]
++pub(crate) fn hands_handoff(prompt: String) -> Result<Value, String> {
++    // Explicit user click only. Copy a bounded prompt, open HANDS, and let the user
++    // paste/approve it there. Do not call privileged tools or simulate Enter.
++    let trimmed = prompt.trim();
++    if trimmed.is_empty() || trimmed.chars().count() > 1200 {
++        return Err("Enter a request of 1–1200 characters".into());
++    }
++    #[cfg(target_os = "macos")]
++    {
++        let mut child = Command::new("/usr/bin/pbcopy").stdin(Stdio::piped())
++            .spawn().map_err(|_| "Clipboard is unavailable".to_string())?;
++        if let Some(mut input) = child.stdin.take() {
++            input.write_all(trimmed.as_bytes())
++                .map_err(|_| "Could not copy the request".to_string())?;
++        }
++        if !child.wait().map_err(|_| "Clipboard command failed".to_string())?.success() {
++            return Err("Could not copy the request".into());
++        }
++        let opened = hands_open()?;
++        return Ok(json!({"copied": true, "opened": opened, "requiresPaste": true}));
++    }
++    #[cfg(not(target_os = "macos"))]
++    {
++        Err("HANDS prompt handoff is currently supported only on macOS".into())
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn only_safe_status_fields_leave_the_bridge() {
++        let raw = json!({"projects":[{"id":"episode:1","name":"Film","progress":125,
++            "dir":"/private/path","issues":[{"secret":"no"}],
++            "qaCounts":{"pass":3,"warn":1,"fail":0},"filmExists":true}]});
++        let out = safe_render_status(&raw).expect("valid data");
++        assert_eq!(out["projects"][0]["progress"], 100.0);
++        assert_eq!(out["projects"][0]["qa"]["warn"], 1);
++        assert!(out["projects"][0].get("dir").is_none());
++        assert!(out["projects"][0].get("issues").is_none());
++    }
++    #[test]
++    fn rejects_unknown_status_shape() {
++        assert!(safe_render_status(&json!({"messages":"wrong type"})).is_none());
++    }
++}
+diff --git a/showcase/tauri/src-tauri/src/main.rs b/showcase/tauri/src-tauri/src/main.rs
+index 19d83cc..7bcebc4 100644
+--- a/showcase/tauri/src-tauri/src/main.rs
++++ b/showcase/tauri/src-tauri/src/main.rs
+@@ -6,6 +6,7 @@
+ #[cfg(target_os = "linux")]
+ mod linux;
+ mod sidecar;
++mod hands;
+ #[cfg(target_os = "macos")]
+ mod snapshot;
+ mod voice;
+@@ -1404,6 +1405,11 @@ fn second_launch(app: &AppHandle, args: &[String]) {
+     }
+ }
+ 
++#[tauri::command]
++fn hands_dock(app: AppHandle, on: bool) {
++    to_overlays(&app, &json!({"kind": "jarvis_dock", "on": on}));
++}
++
+ fn main() {
+     #[cfg(target_os = "linux")]
+     linux::init();
+@@ -1420,7 +1426,7 @@ fn main() {
+         .manage(TalkChord(Mutex::new(vec!["control".into(), "option".into()])))
+         .manage(VoiceModel(Mutex::new(None)))
+         .manage(PermGuide(Mutex::new(None)))
+-        .invoke_handler(tauri::generate_handler![buddy, ink_wait, set_hot, set_hit_rects, sidecar_send, set_typing, perm_status, perm_request, perm_guide, screen_check, open_settings, onboarding_finish, guide_close, panel_hide, esc_watch, relaunch, focus_guide, guide_aside, drag_window])
++        .invoke_handler(tauri::generate_handler![buddy, ink_wait, set_hot, set_hit_rects, sidecar_send, set_typing, perm_status, perm_request, perm_guide, screen_check, open_settings, onboarding_finish, guide_close, panel_hide, esc_watch, relaunch, focus_guide, guide_aside, drag_window, hands::hands_snapshot, hands::hands_modules, hands::hands_open, hands::hands_handoff, hands_dock])
+         .on_menu_event(|app, e| match e.id.as_ref() {
+             "quit" => app.exit(0),
+             "restart" => spawn_sidecar(app),
 diff --git a/showcase/tauri/src-tauri/tauri.conf.json b/showcase/tauri/src-tauri/tauri.conf.json
 index 33234c6..a65d2f0 100644
 --- a/showcase/tauri/src-tauri/tauri.conf.json

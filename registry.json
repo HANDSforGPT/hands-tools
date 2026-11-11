@@ -45,12 +45,12 @@
     {
       "id": "hands-jarvis-silver",
       "name": "HANDS JARVIS Silver",
-      "version": "0.1.0",
-      "description": "Metallic-silver JARVIS orb companion with desktop guidance, speech and guarded HANDS launcher workflows.",
+      "version": "0.2.0",
+      "description": "Metallic JARVIS desktop companion with HANDS tool shortcuts, live render progress, privacy controls, docking, and review-first command handoff.",
       "category": "Desktop",
       "author": "HANDS for GPT; derived from Roamies by KenKaiii",
       "url": "https://raw.githubusercontent.com/HANDSforGPT/hands-tools/main/packages/hands-jarvis-silver/package.json",
-      "sha256": "d015d358f202bde8ea4215af1c6ce632fd40bc5811065ab40089c122b1957b7e"
+      "sha256": "b434ce9a87633ed0e7ee734b2c02228eb6c7aeaaa8dda549825bbda40ea425e2"
     },
     {
       "id": "hands-sandbox",

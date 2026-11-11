@@ -3,8 +3,8 @@
     "schema": 1,
     "id": "hands-jarvis-silver",
     "name": "HANDS JARVIS Silver",
-    "summary": "Metallic-silver JARVIS orb companion with desktop guidance, speech and guarded HANDS launcher workflows.",
-    "version": "0.1.0",
+    "summary": "Metallic JARVIS desktop companion with HANDS tool shortcuts, live render progress, privacy controls, docking, and review-first command handoff.",
+    "version": "0.2.0",
     "minCore": "1.2.57",
     "category": "Desktop",
     "author": "HANDS for GPT; derived from Roamies by KenKaiii",
@@ -13,43 +13,56 @@
       "hands_read_file"
     ]
   },
-  "instructions": "This HANDS module provides approved workflows for a SEPARATE modified Roamies desktop companion. It does not install any executable automatically or add new privileged HANDS commands. Source: https://github.com/HANDSforGPT/hands-tools/tree/main/runtime/hands-jarvis-silver . The companion is based on KenKaiii/Roamies commit bd1e411f9cf9c9f54aaa3e98d265d4c33b38ccc5 under AGPL-3.0. Before installing or distributing, review license/attribution and source requirements. The companion's JARVIS sphere is neutral chrome/silver with animated specular highlights; other Roamies character palettes are unchanged. Build and launch only using an approved HANDS terminal command. Command workflow in cloned hands-tools checkout: 'bash runtime/hands-jarvis-silver/launcher.sh --doctor'; '--install' to fetch/pin upstream source and apply patch; '--build' to compile app (Node, Rust, Tauri dependencies, downloads); '--launch' to open built app. Optionally set HANDS_JARVIS_HOME to desired source folder (e.g. external SSD). Your local preparatory source is at /Users/user/IronlinkProjects/HANDS-JARVIS-SILVER/Roamies, already patched, so do not apply patch twice. Select JARVIS in companion settings. AI-provider sign-in and Fish Audio voice are independently configured in Roamies, and no HANDS credentials should be forwarded. The companion's native screen actions are not HANDS tool calls until a separately reviewed/tested bridge exists. Do not silently enable screen/mic/app control, install software, change permissions, or execute downloaded scripts without approval. Modified binary redistribution must include source and AGPL license.",
+  "instructions": "HANDS JARVIS Silver v0.2.0 is a SOURCE-PACKAGED, SEPARATE modified Roamies companion under AGPL-3.0. It includes an Apple-style chrome/silver animated orb, double-click to open HANDS, a HANDS control panel listing local HANDS modules, read-only live Visual Studio rendering progress, copy-and-open HANDS prompt handoff, quick privacy controls, edge docking, and low-power panel animation. The source patch and opt-in installer are at https://github.com/HANDSforGPT/hands-tools/tree/hands-jarvis-silver/runtime/hands-jarvis-silver . The upstream project is https://github.com/KenKaiii/Roamies ; original commit bd1e411f9cf9c9f54aaa3e98d265d4c33b38ccc5; AGPL-3.0. The HANDS Tool Store module installs instructions ONLY, never a binary or new MCP command. The companion is NOT yet directly connected to HANDS command execution, HANDS Brain memory, HANDS True Voice speech, or auto-fullscreen detection. For source installation, first inspect README, NOTICE and silver.patch. Run a locally authorized HANDS terminal command: 'bash runtime/hands-jarvis-silver/launcher.sh --doctor' to inspect prerequisites, '--install' to clone the pinned upstream and apply the silver patch to an EMPTY folder, '--build' after installing Node.js 22+, Rust/Cargo, Tauri CLI v2, Xcode command line tools and npm ci in showcase/tauri/sidecar, then '--launch' to open the signed/unsigned local application. Set HANDS_JARVIS_HOME to external SSD to avoid filling the internal disk. This user's prepared source is /Volumes/EMTEC X200E/HANDS Projects/JARVIS Silver/Source. DO NOT re-run --install over it. The HANDS panel's 'Copy + open' operation copies text and opens HANDS; the user must paste, inspect and submit there. Never claim a command executed on HANDS based on handoff alone. Real native HANDS actions retain all required permissions/approvals. Do not send account credentials or keys into the companion, or enable microphone/screen permissions automatically. The original updater is disabled for this derivative. A GitHub Actions workflow prepares an unsigned macOS app ZIP only if the build succeeds. Corresponding source, original AGPL-3.0 license and third-party notices must accompany redistributed modified binaries.",
   "recipes": [
     {
-      "title": "Check local companion prerequisites",
+      "title": "Inspect and launch the HANDS controller",
       "steps": [
         {
-          "instruction": "Review runtime/hands-jarvis-silver/README.md, NOTICE.md and pinned source details.",
+          "instruction": "Use HANDS Tools to install this declarative module, inspect README and AGPL attribution first.",
           "command": "hands_read_file"
         },
         {
-          "instruction": "Run 'bash runtime/hands-jarvis-silver/launcher.sh --doctor' using the approved HANDS terminal.",
+          "instruction": "Using the HANDS terminal after approval, run the launcher with --doctor to verify a built app is present.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "If compiled, use --launch. In the silver companion open the HANDS sidebar tab; double-click the orb to launch HANDS.",
           "command": "hands_start_process"
         }
       ]
     },
     {
-      "title": "Install the pinned silver companion",
+      "title": "Check live episode rendering",
       "steps": [
         {
-          "instruction": "Only after user approval, run 'bash runtime/hands-jarvis-silver/launcher.sh --install' to clone and patch the AGPL-3.0 companion. This is separate from Tool Store package installation.",
-          "command": "hands_start_process"
+          "instruction": "Open the HANDS JARVIS Silver control panel's HANDS tab. This uses read-only Visual Studio status; do not invent progress or assume the engine is running."
         },
         {
-          "instruction": "If Rust, Node and Tauri prerequisites are ready and there is sufficient disk space, run '--build' with approval; do not assume it succeeded.",
-          "command": "hands_start_process"
-        },
-        {
-          "instruction": "After successful compilation, use '--launch' and select JARVIS in the companion.",
-          "command": "hands_start_process"
+          "instruction": "Select a project, view its stage and QA counts, and open the main HANDS app for actions requiring approval."
         }
       ]
     },
     {
-      "title": "Launch existing silver JARVIS",
+      "title": "Prepare a tool request safely",
       "steps": [
         {
-          "instruction": "Run 'bash runtime/hands-jarvis-silver/launcher.sh --launch' with local approval; never reinstall on a normal launch.",
+          "instruction": "Choose an installed HANDS module or type a request in the HANDS tab. The panel copies the request to the clipboard and opens HANDS."
+        },
+        {
+          "instruction": "The user pastes and submits the request in HANDS. Only HANDS executes with its normal permissions and confirmations."
+        }
+      ]
+    },
+    {
+      "title": "Build distributable companion",
+      "steps": [
+        {
+          "instruction": "If needed and approved, install the pinned source in an empty external SSD directory and install Rust, Node and Tauri dependencies. Do not overwrite existing work.",
+          "command": "hands_start_process"
+        },
+        {
+          "instruction": "Build and test the companion; check the GitHub Actions artifact before calling it downloadable. Preserve AGPL source and attributions.",
           "command": "hands_start_process"
         }
       ]
